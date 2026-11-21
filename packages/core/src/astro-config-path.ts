@@ -7,7 +7,7 @@ export const getAstroConfigPath = (projectDirectory: string, configFile: string,
   const configRoot = paths.parse(paths.resolve(configFile)).root.toLowerCase();
   if (projectRoot !== configRoot || paths.isAbsolute(relative)) {
     throw new Error(
-      'EventCatalog cannot load its Astro configuration across filesystem drives. Install or link @eventcatalog/core on the same drive as the catalog.'
+      'EventCatalog cannot load its Astro configuration across filesystem drives. Install or link @opencatalog/core on the same drive as the catalog.'
     );
   }
   return relative.replace(/\\/g, '/');

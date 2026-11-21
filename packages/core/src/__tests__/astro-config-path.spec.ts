@@ -17,7 +17,7 @@ describe('Astro configuration paths', () => {
 
   it('rejects cross-drive Windows configurations with an actionable error', () => {
     expect(() => getAstroConfigPath('D:\\catalog', 'C:\\packages\\core\\astro.config.mjs', path.win32)).toThrow(
-      'EventCatalog cannot load its Astro configuration across filesystem drives. Install or link @eventcatalog/core on the same drive as the catalog.'
+      'EventCatalog cannot load its Astro configuration across filesystem drives. Install or link @opencatalog/core on the same drive as the catalog.'
     );
   });
 

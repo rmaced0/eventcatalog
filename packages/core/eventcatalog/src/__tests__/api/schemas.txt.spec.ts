@@ -77,29 +77,6 @@ vi.mock('astro:content', async (importOriginal) => {
 });
 
 describe('api/schemas.txt', () => {
-  it('returns a list of schemas for events, commands, queries, and services when EventCatalog Scale is enabled', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
-    const response = await GET({ request: new Request('http://localhost:4321/api/schemas.txt') } as any);
-    expect(response.status).toBe(200);
-
-    const responseBody = await response.text();
-    expect(responseBody).toEqual(`# Acme Inc EventCatalog Schemas
-List of schemas for events, commands, queries, and services in EventCatalog.
-
-## Events
-- [Order Placed - OrderPlaced - 1.0.0](http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0)} - Order Placed summary
-
-## Commands
-- [Create Order - CreateOrder - 1.0.0](http://localhost:4321/api/schemas/commands/CreateOrder/1.0.0)} - Create Order summary
-
-## Queries
-- [Get Order - GetOrder - 1.0.0](http://localhost:4321/api/schemas/queries/GetOrder/1.0.0)} - Get Order summary
-
-## Services
-- [OrderService - 1.0.0 - openapi specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/openapi) - Specification for Order Service summary
-- [OrderService - 1.0.0 - asyncapi specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/asyncapi) - Specification for Order Service summary
-- [OrderService - 1.0.0 - graphql specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/graphql) - Specification for Order Service summary`);
-  });
   it('returns an error when EventCatalog Scale is disabled', async () => {
     process.env.EVENTCATALOG_SCALE = 'false';
     const response = await GET({ request: new Request('http://localhost:4321/api/schemas.txt') } as any);

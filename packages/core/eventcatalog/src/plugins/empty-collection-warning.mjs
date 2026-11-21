@@ -30,8 +30,6 @@ export const KNOWN_EVENTCATALOG_COLLECTIONS = new Set([
   'ubiquitousLanguages',
   'entities',
   'customPages',
-  'resourceDocs',
-  'resourceDocCategories',
   'designs',
   'diagrams',
   'schemas',

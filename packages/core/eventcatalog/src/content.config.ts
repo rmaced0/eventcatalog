@@ -6,14 +6,10 @@ import { badge, ownerReference } from './content.config-shared-collections';
 import { ADR_STATUS_VALUES } from './utils/collections/adr-constants';
 import fs from 'fs';
 import path from 'path';
-import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
 import { globWithSafeWatcher, withFederatedContent, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 import { withExtensionProperties } from './utils/collections/extension-properties';
-
-// Enterprise Collections
-import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
 
 // Astro's root is the user's catalog. Keep loader paths relative to that root,
 // independently of where generated metadata or the installed package lives.
@@ -704,51 +700,19 @@ const containers = defineCollection({
   ),
 });
 
+// Custom documentation pages (the docs/ folder) were a paid EventCatalog
+// feature and are not part of OpenCatalog. The collection is kept, always
+// empty, so code that looks custom pages up keeps working.
 const customPages = defineCollection({
-  loader: globWithSafeWatcher({
-    // any number of child folders
-    pattern: withIgnoredBuildArtifacts(['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)']),
-    base: catalogRoot,
+  loader: async () => [],
+  schema: z.object({
+    title: z.string(),
+    summary: z.string().optional(),
+    slug: z.string().optional(),
+    sidebar: z.object({ label: z.string(), order: z.number() }).optional(),
+    owners: z.array(ownerReference).optional(),
+    badges: z.array(badge).optional(),
   }),
-  schema: customPagesSchema,
-});
-
-const resourceDocs = defineCollection({
-  loader: globWithSafeWatcher({
-    // Resource-level docs are restricted to known resource paths.
-    // This avoids scanning external docs such as node_modules/**/docs.
-    pattern: withIgnoredBuildArtifacts(
-      withFederatedContent([
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/*.@(md|mdx)',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/*.@(md|mdx)',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/*.@(md|mdx)',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/*.@(md|mdx)',
-        'domains/**/docs/**/*.@(md|mdx)',
-        'domains/**/docs/*.@(md|mdx)',
-      ])
-    ),
-    base: catalogRoot,
-  }),
-  schema: resourceDocsSchema,
-});
-
-const resourceDocCategories = defineCollection({
-  loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts(
-      withFederatedContent([
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/category.json',
-        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/_category_.json',
-        'domains/**/docs/**/category.json',
-        'domains/**/docs/**/_category_.json',
-        'domains/**/docs/category.json',
-        'domains/**/docs/_category_.json',
-      ])
-    ),
-    base: catalogRoot,
-  }),
-  schema: resourceDocCategoriesSchema,
 });
 
 const domains = defineCollection({
@@ -1028,16 +992,10 @@ const entities = defineCollection({
 });
 
 const users = defineCollection({
-  loader: userTeamDirectoryLoader({
-    collection: 'users',
-    storePath: path.join(projectDirectory, '.eventcatalog/store/directory.json'),
-    sources: config.directory?.sources,
-    conflictStrategy: config.directory?.conflictStrategy,
-    local: {
-      pattern: withIgnoredBuildArtifacts(withFederatedContent('users/*.(md|mdx)')),
-      base: catalogRoot,
-      generateId: ({ data }) => data.id as string,
-    },
+  loader: globWithSafeWatcher({
+    pattern: withIgnoredBuildArtifacts(withFederatedContent('users/*.(md|mdx)')),
+    base: catalogRoot,
+    generateId: ({ data }) => data.id as string,
   }),
   schema: z.object({
     id: z.string(),
@@ -1061,16 +1019,10 @@ const users = defineCollection({
 });
 
 const teams = defineCollection({
-  loader: userTeamDirectoryLoader({
-    collection: 'teams',
-    storePath: path.join(projectDirectory, '.eventcatalog/store/directory.json'),
-    sources: config.directory?.sources,
-    conflictStrategy: config.directory?.conflictStrategy,
-    local: {
-      pattern: withIgnoredBuildArtifacts(withFederatedContent('teams/*.(md|mdx)')),
-      base: catalogRoot,
-      generateId: ({ data }) => data.id as string,
-    },
+  loader: globWithSafeWatcher({
+    pattern: withIgnoredBuildArtifacts(withFederatedContent('teams/*.(md|mdx)')),
+    base: catalogRoot,
+    generateId: ({ data }) => data.id as string,
   }),
   schema: z.object({
     id: z.string(),
@@ -1281,6 +1233,7 @@ const examples = defineCollection({
 });
 
 export const collections = {
+  customPages,
   events,
   commands,
   queries,
@@ -1306,9 +1259,6 @@ export const collections = {
   entities,
 
   // EventCatalog Pro Collections
-  customPages,
-  resourceDocs,
-  resourceDocCategories,
 
   // EventCatalog Studio Collections
   designs,

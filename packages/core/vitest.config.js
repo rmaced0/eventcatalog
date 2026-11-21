@@ -47,7 +47,6 @@ export default defineConfig({
       '@types': path.resolve(__dirname, 'eventcatalog/src/types/index.ts'),
       '@utils': path.resolve(__dirname, 'eventcatalog/src/utils'),
       '@layouts': path.resolve(__dirname, 'eventcatalog/src/layouts'),
-      '@enterprise': path.resolve(__dirname, 'eventcatalog/src/enterprise'),
       'auth:config': path.resolve(__dirname, 'eventcatalog/auth.config.ts'),
     },
   },

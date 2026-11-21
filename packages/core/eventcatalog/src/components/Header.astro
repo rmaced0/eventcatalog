@@ -23,11 +23,11 @@ if (isAuthEnabled()) {
 
 const logo = {
   src: ('/' + (catalog?.logo?.src || '')).replace(/^\/+/, '/'),
-  alt: catalog?.logo?.alt || 'Event Catalog',
-  text: catalog?.logo?.text || 'EventCatalog',
+  alt: catalog?.logo?.alt || 'OpenCatalog',
+  text: catalog?.logo?.text || 'OpenCatalog',
 };
 
-const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalog/eventcatalog';
+const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/rmaced0/eventcatalog';
 
 const user = session?.user as { name?: string; email?: string; image?: string; provider?: string } | undefined;
 const userName = user?.name || user?.email || 'User';

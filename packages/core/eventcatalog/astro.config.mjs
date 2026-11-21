@@ -27,7 +27,6 @@ import expressiveCode from 'astro-expressive-code';
 // preprocessors and the rehype plugin below load those same package defaults.
 import expressiveCodeConfig from './ec.config.mjs';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
-import eventCatalogIntegration from './src/enterprise/integrations/eventcatalog-features.ts';
 import eventCatalogRuntime, { getDevServerFileSystem, packageDirectory } from './integrations/eventcatalog-runtime.mjs';
 import config from './src/utils/eventcatalog-config/source.ts';
 import preprocessExpressiveCodeConfig from './integrations/expressive-code-config.mjs';
@@ -46,7 +45,7 @@ const effectiveOutput = isDevMode ? 'server' : config.output || 'static';
 const searchType = config.search?.type || 'resource';
 const bundledRuntimeDependencies = [
   '@xyflow/react',
-  '@eventcatalog/core',
+  '@opencatalog/core',
   '@astrojs/react',
   '@astrojs/node',
   '@astrojs/internal-helpers',
@@ -139,7 +138,6 @@ export default defineConfig({
     catalogAssets({ projectDirectory, generatedDirectory: join(runtimeDirectory, 'public') }),
     effectiveOutput !== 'server' && compress && (await loadAstroCompressIntegration(projectDirectory)),
     ecstudioWatcher(),
-    eventCatalogIntegration(),
     linkValidation(config.linkValidation),
   ].filter(Boolean),
   vite: {

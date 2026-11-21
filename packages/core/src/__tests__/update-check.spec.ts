@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from '../update-check';
 
 const banner = (current: string, latest: string) =>
-  `EventCatalog update available ${current} → ${latest}\nRun npm i @eventcatalog/core to update`;
+  `EventCatalog update available ${current} → ${latest}\nRun npm i @opencatalog/core to update`;
 
 describe('resolveInstalledCoreVersion', () => {
   it('uses the running version when the catalog dependency is a range', () => {

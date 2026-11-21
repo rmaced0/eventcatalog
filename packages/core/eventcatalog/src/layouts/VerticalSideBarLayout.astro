@@ -50,12 +50,12 @@ import { getDataProducts } from '@utils/collections/data-products';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
-import { getFirstNavigationPage } from '@enterprise/custom-documentation/utils/custom-docs';
 
 import { isEmbedEnabled, isCustomStylesEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
 
 const customDocs = await getCollection('customPages');
-const firstCustomDocsPage = isCustomDocsEnabled() && customDocs.length > 0 ? await getFirstNavigationPage() : null;
+// Custom docs are not part of OpenCatalog, so there is never a first custom docs page.
+const firstCustomDocsPage = null as { slug: string } | null;
 
 let events: any[] = [];
 let commands: any[] = [];
@@ -737,11 +737,11 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
           >
             <img
               src={config?.logo?.src ? buildUrl('/' + config.logo.src.replace(/^\/+/, ''), true) : buildUrl('/logo.png', true)}
-              alt={config?.logo?.alt || 'EventCatalog'}
+              alt={config?.logo?.alt || 'OpenCatalog'}
               class="w-6 h-6 flex-shrink-0"
             />
             <span class="nav-brand-text text-[15px] font-semibold text-[rgb(var(--ec-page-text))] tracking-tight">
-              {config?.logo?.text || config?.organizationName || 'EventCatalog'}
+              {config?.logo?.text || config?.organizationName || 'OpenCatalog'}
             </span>
           </a>
 

@@ -1,17 +1,18 @@
 {
-  "name": "@eventcatalog/core",
-  "homepage": "https://github.com/event-catalog/eventcatalog",
+  "name": "@opencatalog/core",
+  "homepage": "https://github.com/rmaced0/eventcatalog",
   "repository": {
     "type": "git",
-    "url": "https://github.com/event-catalog/eventcatalog.git"
+    "url": "https://github.com/rmaced0/eventcatalog.git"
   },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "version": "4.12.1",
   "publishConfig": {
     "access": "public"
   },
   "bin": {
+    "opencatalog": "bin/eventcatalog.js",
     "eventcatalog": "bin/eventcatalog.js"
   },
   "typesVersions": {
@@ -80,7 +81,6 @@
     "@asyncapi/parser": "^3.6.0",
     "@asyncapi/react-component": "3.1.0",
     "@auth/core": "^0.41.3",
-    "@eventcatalog/license": "^0.0.8",
     "@eventcatalog/linter": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/visualiser": "workspace:^",

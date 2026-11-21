@@ -26,5 +26,5 @@ export const getEventCatalogUpdateMessage = (current: string, latest: string | u
   }
 
   return `EventCatalog update available ${current} → ${latest}
-Run npm i @eventcatalog/core to update`;
+Run npm i @opencatalog/core to update`;
 };

@@ -29,7 +29,7 @@ describe('package-owned Astro runtime', () => {
     ]);
     const filename = '@headlessui__react.mjs';
     expect(getRuntimeDependencyPath('@headlessui/react', 'ssr', specifiers)).toBe(
-      `@eventcatalog/core/dist/runtime-dependencies/${filename}`
+      `@opencatalog/core/dist/runtime-dependencies/${filename}`
     );
     expect(
       getRuntimeDependencyPath('@headlessui/react', 'prerender', specifiers, new URL('file:///installed/dependencies/'))
@@ -37,7 +37,7 @@ describe('package-owned Astro runtime', () => {
     expect(getRuntimeDependencyPath('@astrojs/react/server.js', 'ssr', specifiers)).toBe('@astrojs/react/server.js');
     expect(getRuntimeDependencyPath('node:fs', 'ssr', specifiers)).toBe('node:fs');
     expect(getRuntimeDependencyPath('astro/assets/services/sharp', 'ssr', specifiers)).toBe(
-      '@eventcatalog/core/dist/runtime-dependencies/astro__assets__services__sharp.mjs'
+      '@opencatalog/core/dist/runtime-dependencies/astro__assets__services__sharp.mjs'
     );
   });
   it.each([

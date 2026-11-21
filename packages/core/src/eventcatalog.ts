@@ -18,25 +18,20 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
-import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
 import { getAstroConfigPath } from './astro-config-path';
-import {
-  federateCatalog,
-  FederationConflictError,
-  FederationDiagnosticError,
-  type FederationProgressEvent,
-} from './federation/federate';
-import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
 import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const astroCli = path.join(path.dirname(createRequire(import.meta.url).resolve('astro/package.json')), 'bin/astro.mjs');
 const program = new Command().version(VERSION);
 
-import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnabled } from '@eventcatalog/license';
+// OpenCatalog has no paid plans or license keys, so every plan check is off.
+const isEventCatalogStarterEnabled = async () => false;
+const isEventCatalogScaleEnabled = async () => false;
+const isFeatureEnabled = async (_pluginName: string, _licenseKey?: string) => false;
 
 // The users dierctory
 const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
@@ -52,7 +47,7 @@ const getInstalledEventCatalogVersion = () => {
   try {
     const pkg = fs.readFileSync(join(dir, 'package.json'), 'utf8');
     const json = JSON.parse(pkg);
-    return json.dependencies['@eventcatalog/core'];
+    return json.dependencies['@opencatalog/core'] ?? json.dependencies['@eventcatalog/core'];
   } catch (error) {
     return null;
   }
@@ -327,7 +322,7 @@ Upgrade now: npm i @eventcatalog/core@beta`;
   const installedVersion = resolveInstalledCoreVersion(VERSION, declaredVersion);
   if (!installedVersion) return;
 
-  const pkg = { name: '@eventcatalog/core', version: installedVersion };
+  const pkg = { name: '@opencatalog/core', version: installedVersion };
   const notifier = updateNotifier({ pkg, updateCheckInterval: 0 });
   const message = getEventCatalogUpdateMessage(installedVersion, notifier.update?.latest);
 
@@ -408,21 +403,6 @@ program
       isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
       command: 'dev',
     });
-
-    // Build fields index if running in SSR mode
-    if (isServer) {
-      try {
-        logger.info('Building fields index...', 'fields');
-        const { warnings } = await buildFieldsIndex(dir, core);
-        if (warnings.length > 0) {
-          logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
-        } else {
-          logger.info('Fields index built successfully', 'fields');
-        }
-      } catch (err: any) {
-        logger.info(`Failed to build fields index: ${err.message}`, 'fields');
-      }
-    }
 
     const shouldBuildIndexedSearch = await isIndexedSearchEnabled();
     if (shouldBuildIndexedSearch) {
@@ -518,21 +498,6 @@ program
 
     // Run any migrations for the catalog
     await runMigrations(dir);
-
-    // Build fields index if running in SSR mode
-    if (isServer) {
-      try {
-        logger.info('Building fields index...', 'fields');
-        const { warnings } = await buildFieldsIndex(dir, core);
-        if (warnings.length > 0) {
-          logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
-        } else {
-          logger.info('Fields index built successfully', 'fields');
-        }
-      } catch (err: any) {
-        logger.info(`Failed to build fields index: ${err.message}`, 'fields');
-      }
-    }
 
     checkForUpdate();
 
@@ -723,135 +688,6 @@ program
     await generate(dir);
   });
 
-const reportFederationProgress = (event: FederationProgressEvent, verbose = false) => {
-  switch (event.type) {
-    case 'configured':
-      if (event.sources > 0)
-        logger.info(`Found ${event.sources} configured source${event.sources === 1 ? '' : 's'}`, 'federation');
-      return;
-    case 'cleanup:complete':
-      logger.success(
-        `No sources configured; removed previous federation output${
-          event.publicFiles > 0 ? ` and ${event.publicFiles} managed public file${event.publicFiles === 1 ? '' : 's'}` : ''
-        }.`,
-        'federation'
-      );
-      return;
-    case 'cache:disabled':
-      logger.info('Content cache disabled; all federated files will be downloaded.', 'federation');
-      return;
-    case 'source:start':
-      logger.info(`[${event.current}/${event.total}] Fetching and indexing ${event.source.id}...`, 'federation');
-      return;
-    case 'source:complete':
-      logger.success(
-        `[${event.current}/${event.total}] ${event.source.id}: ${event.resources} resources at ${event.commit.slice(0, 7)}${
-          event.generated ? ' (index generated)' : ' (published index)'
-        }`,
-        'federation'
-      );
-      return;
-    case 'local:start':
-      logger.info('Indexing central catalog ownership...', 'federation');
-      return;
-    case 'local:complete':
-      logger.success(
-        `Central catalog: ${event.resources} local resource${event.resources === 1 ? '' : 's'} found (excluding federated/)`,
-        'federation'
-      );
-      return;
-    case 'resolving':
-      logger.info(
-        `Validating ownership across ${event.localResources} local resource${event.localResources === 1 ? '' : 's'} and ${event.resources} remote resource${event.resources === 1 ? '' : 's'}...`,
-        'federation'
-      );
-      return;
-    case 'resolved':
-      const counts = getFederationDiagnosticCounts(event.diagnostics);
-      const showDiagnosticDetails = verbose || counts.errors > 0;
-
-      if (counts.errors === 0) {
-        logger.success(
-          `Graph resolved: ${event.graph.entities.length} remote resources, ${event.graph.edges.length} relationships`,
-          'federation'
-        );
-      }
-
-      if (counts.errors + counts.warnings === 0) return;
-
-      if (showDiagnosticDetails) {
-        const diagnostics = getVisibleFederationDiagnostics(event.diagnostics, verbose);
-
-        logger.info('Federation diagnostics', 'federation');
-        logger.line();
-        for (const diagnostic of diagnostics) {
-          logger.diagnostic(diagnostic.severity, diagnostic.message, diagnostic.rule, diagnostic.attributes);
-          logger.line();
-        }
-        logger.diagnosticSummary(counts.errors, counts.warnings);
-      } else {
-        logger.warning(
-          `${counts.warnings} problem${counts.warnings === 1 ? '' : 's'} (0 errors, ${counts.warnings} warning${counts.warnings === 1 ? '' : 's'})`,
-          'federation'
-        );
-      }
-
-      if (!verbose && counts.warnings > 0) {
-        logger.info('Run with --verbose to see warning details.', 'federation');
-      }
-      return;
-    case 'hydrating':
-      logger.info(`Hydrating federated content into ${path.relative(dir, event.outDir)}/...`, 'federation');
-      return;
-    case 'hydrate:cache':
-      if (event.files === 1 || event.files % 25 === 0) {
-        logger.info(`Reused ${event.files} cached file${event.files === 1 ? '' : 's'}...`, 'federation');
-      }
-      return;
-    case 'hydrate:file':
-      if (event.files === 1 || event.files % 25 === 0) {
-        logger.info(`Fetched ${event.files} federated file${event.files === 1 ? '' : 's'}...`, 'federation');
-      }
-      return;
-    case 'public:complete':
-      logger.success(
-        `Public assets: ${event.result.copied} copied, ${event.result.skipped} preserved from the main catalog, ${event.result.removed} stale removed`,
-        'federation'
-      );
-      return;
-    case 'complete':
-      logger.success(
-        `Federation complete: ${event.result.sources} sources, ${event.result.resources} remote resources, ${event.result.hydrate.written} files written (${event.result.hydrate.fetched} downloaded, ${event.result.hydrate.written - event.result.hydrate.fetched} cached)`,
-        'federation'
-      );
-      logger.info(`Recorded resolved source state in ${path.relative(dir, event.result.lockPath)}`, 'federation');
-  }
-};
-
-program
-  .command('federate')
-  .description('Fetch, resolve, and hydrate the catalogs configured in federation.sources.')
-  .option('--no-cache', 'Download all federation content and refresh the cache.')
-  .option('-v, --verbose', 'Show detailed federation diagnostics.')
-  .action(async (commandOptions: { cache: boolean; verbose: boolean }) => {
-    logger.welcome();
-
-    if (fs.existsSync(path.join(dir, '.env'))) {
-      dotenv.config({ path: path.join(dir, '.env') });
-    }
-
-    logger.info('Starting federation...', 'federation');
-    let cleanedPreviousOutput = false;
-    const result = await federateCatalog(dir, {
-      useCache: commandOptions.cache,
-      onProgress: (event) => {
-        if (event.type === 'cleanup:complete') cleanedPreviousOutput = true;
-        reportFederationProgress(event, commandOptions.verbose);
-      },
-    });
-    if (!result && !cleanedPreviousOutput) logger.warning('No federation sources configured; nothing to do.', 'federation');
-  });
-
 program.addHelpText(
   'after',
   `
@@ -865,6 +701,6 @@ program
   .parseAsync()
   .then(() => process.exit(0))
   .catch((err) => {
-    if (!(err instanceof FederationConflictError) && !(err instanceof FederationDiagnosticError)) console.error(err);
+    console.error(err);
     process.exit(1);
   });

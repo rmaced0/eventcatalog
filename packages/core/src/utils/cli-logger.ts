@@ -13,17 +13,8 @@ const formatMessage = (tag: string, message: string, tagColor: (s: string) => st
 export const logger = {
   welcome: () => {
     console.log();
-    console.log(pc.magenta(pc.bold('🚀 EventCatalog')) + pc.dim(`  (v${VERSION})`));
-    console.log(pc.dim('https://eventcatalog.dev'));
-    console.log();
-    console.log(
-      pc.dim('If you like the project, we would appreciate a star on GitHub ❤️ - ') +
-        pc.bold('https://github.com/event-catalog/eventcatalog/stargazers')
-    );
-    console.log(
-      pc.dim('Using AI? Install EventCatalog Skills to help you manage your catalog - ') +
-        pc.bold('https://github.com/event-catalog/skills')
-    );
+    console.log(pc.magenta(pc.bold('🚀 OpenCatalog')) + pc.dim(`  (v${VERSION})`));
+    console.log(pc.dim('https://github.com/rmaced0/eventcatalog'));
     console.log();
   },
   info: (message: string, tag: string = 'info') => {

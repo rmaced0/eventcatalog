@@ -1,0 +1,22 @@
+OpenCatalog
+Copyright (c) 2026 OpenCatalog contributors
+
+OpenCatalog is a fork of EventCatalog (https://github.com/event-catalog/eventcatalog),
+taken from the MIT-licensed 4.x line at version 4.12.1 of @eventcatalog/core.
+EventCatalog is copyright (c) 2022-2026 boyney123 and released under the MIT License,
+which is kept in the LICENSE file.
+
+EventCatalog 4.x also contained source code under the separate EventCatalog
+Commercial License, in these directories:
+
+  - packages/core/eventcatalog/src/enterprise/
+  - packages/core/src/federation/
+
+That code was removed when this fork was created and is not part of OpenCatalog.
+No code from EventCatalog 5.x or later (Business Source License 1.1) is included.
+Everything in this repository is available under the MIT License.
+
+OpenCatalog is not affiliated with or endorsed by EventCatalog Ltd. "EventCatalog"
+is used here only to describe where the code came from. Some internal names
+(package scopes, environment variables, config file names) still use
+"eventcatalog" so that the code stays compatible with existing catalogs.

@@ -5,6 +5,6 @@
   "type": "module",
   "dependencies": {
     "@eventcatalog/connectors": "workspace:*",
-    "@eventcatalog/core": "workspace:*"
+    "@opencatalog/core": "workspace:*"
   }
 }

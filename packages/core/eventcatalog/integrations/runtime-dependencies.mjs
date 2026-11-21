@@ -12,7 +12,7 @@ export function getRuntimeDependencyPath(specifier, environment, manifest, direc
   // specifiers that survive moving/reinstalling the app.
   return environment === 'prerender'
     ? new URL(filename, directory).href
-    : `@eventcatalog/core/dist/runtime-dependencies/${filename}`;
+    : `@opencatalog/core/dist/runtime-dependencies/${filename}`;
 }
 
 export default function runtimeDependencies() {
